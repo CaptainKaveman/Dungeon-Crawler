@@ -1,0 +1,112 @@
+flowchart TD
+    Start([Start Game]) --> LoadCheck{Load Saved Game?}
+    LoadCheck -->|Yes| LoadGame[Load Game Data]
+    LoadCheck -->|No| CreatePlayer[Create New Player]
+    
+    LoadGame --> MainLoop
+    CreatePlayer --> InitRooms[Initialize Rooms & Enemies]
+    InitRooms --> MainLoop
+    
+    MainLoop{Game Running?} -->|No| EndGame([Game Over])
+    MainLoop -->|Yes| DisplayRoom[Display Current Room]
+    
+    DisplayRoom --> GetCommand[Get Player Command]
+    
+    GetCommand --> ParseCommand{Parse Command}
+    
+    ParseCommand -->|look| ShowRoomDetails[Show Room Details]
+    ParseCommand -->|inventory| ShowInventory[Display Inventory]
+    ParseCommand -->|stats| ShowStats[Display Player Stats]
+    ParseCommand -->|move| MovePlayer{Valid Direction?}
+    ParseCommand -->|attack| InitiateCombat{Enemies Present?}
+    ParseCommand -->|take| PickupItem{Item Available?}
+    ParseCommand -->|use| UseItem[Use Item from Inventory]
+    ParseCommand -->|equip| EquipItem[Equip Weapon/Armor]
+    ParseCommand -->|save| SaveGame[Save Game State]
+    ParseCommand -->|quit| ConfirmQuit{Save Before Quit?}
+    ParseCommand -->|help| ShowHelp[Display Commands]
+    ParseCommand -->|invalid| InvalidCommand[Invalid Command Message]
+    
+    %% Movement Flow
+    MovePlayer -->|Yes| ChangeRoom[Move to New Room]
+    MovePlayer -->|No| InvalidDirection[Invalid Direction Message]
+    ChangeRoom --> CheckRoomEnemies{Enemies in Room?}
+    CheckRoomEnemies -->|Yes| AlertPlayer[Alert Player to Danger]
+    CheckRoomEnemies -->|No| MainLoop
+    AlertPlayer --> MainLoop
+    InvalidDirection --> MainLoop
+    
+    %% Combat Flow
+    InitiateCombat -->|Yes| CombatLoop
+    InitiateCombat -->|No| NoEnemies[No Enemies to Fight]
+    NoEnemies --> MainLoop
+    
+    %% Item Pickup Flow
+    PickupItem -->|Yes| AddToInventory{Inventory Full?}
+    PickupItem -->|No| NoItem[Item Not Found]
+    AddToInventory -->|No| TakeItem[Add Item to Inventory]
+    AddToInventory -->|Yes| InventoryFull[Inventory Full Message]
+    TakeItem --> MainLoop
+    InventoryFull --> MainLoop
+    NoItem --> MainLoop
+    
+    %% Other Actions
+    ShowRoomDetails --> MainLoop
+    ShowInventory --> MainLoop
+    ShowStats --> MainLoop
+    UseItem --> MainLoop
+    EquipItem --> MainLoop
+    ShowHelp --> MainLoop
+    InvalidCommand --> MainLoop
+    
+    %% Save/Quit Flow
+    SaveGame --> SaveSuccess[Game Saved Successfully]
+    SaveSuccess --> MainLoop
+    ConfirmQuit -->|Yes| SaveGame
+    ConfirmQuit -->|No| EndGame
+    
+    %% Combat System (Separate Subgraph)
+    CombatLoop[Combat Begins] --> SelectEnemy{Multiple Enemies?}
+    SelectEnemy -->|Yes| ChooseEnemy[Player Selects Enemy]
+    SelectEnemy -->|No| AutoTarget[Auto-target Enemy]
+    
+    ChooseEnemy --> PlayerTurn
+    AutoTarget --> PlayerTurn
+    
+    PlayerTurn[Player Attacks] --> CalculateDamage[Calculate Damage]
+    CalculateDamage --> ApplyDamage[Apply Damage to Enemy]
+    
+    ApplyDamage --> EnemyDead{Enemy Defeated?}
+    EnemyDead -->|Yes| DropLoot[Enemy Drops Item]
+    EnemyDead -->|No| EnemyTurn
+    
+    DropLoot --> GainExp[Player Gains Experience]
+    GainExp --> CheckLevelUp{Level Up?}
+    CheckLevelUp -->|Yes| LevelUpPlayer[Player Levels Up]
+    CheckLevelUp -->|No| RemoveEnemy
+    LevelUpPlayer --> RemoveEnemy[Remove Enemy from Room]
+    
+    RemoveEnemy --> MoreEnemies{More Enemies?}
+    MoreEnemies -->|Yes| CombatLoop
+    MoreEnemies -->|No| CombatWon[Combat Won!]
+    CombatWon --> MainLoop
+    
+    EnemyTurn[Enemy Attacks] --> EnemyDamage[Calculate Enemy Damage]
+    EnemyDamage --> PlayerDamage[Apply Damage to Player]
+    PlayerDamage --> PlayerDead{Player Dead?}
+    
+    PlayerDead -->|Yes| GameOver[Game Over - Player Died]
+    PlayerDead -->|No| CombatContinue{Continue Combat?}
+    
+    CombatContinue -->|Yes| PlayerTurn
+    CombatContinue -->|No| Flee[Player Flees]
+    
+    GameOver --> EndGame
+    Flee --> MainLoop
+    
+    style Start fill:#90EE90
+    style EndGame fill:#FFB6C6
+    style GameOver fill:#FF6B6B
+    style CombatLoop fill:#FFE4B5
+    style MainLoop fill:#87CEEB
+    style LevelUpPlayer fill:#FFD700

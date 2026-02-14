@@ -1,0 +1,156 @@
+classDiagram
+    %% Core Game Management
+    class Game {
+        -Player player
+        -List~Room~ rooms
+        -Room currentRoom
+        -bool isRunning
+        +Start() void
+        +GameLoop() void
+        +ProcessCommand(string) void
+        +SaveGame() void
+        +LoadGame() void
+        +EndGame() void
+    }
+
+    %% Character Base Class
+    class Character {
+        <<abstract>>
+        #string name
+        #int maxHealth
+        #int currentHealth
+        #int attackPower
+        #int level
+        +Character(name, health, attack)
+        +Attack(Character) int
+        +TakeDamage(int) void
+        +IsAlive() bool
+        +GetHealth() int
+        +Heal(int) void
+    }
+
+    %% Player Class
+    class Player {
+        -int experience
+        -int experienceToNextLevel
+        -Inventory inventory
+        -int defense
+        +Player(name)
+        +GainExperience(int) void
+        +LevelUp() void
+        +EquipWeapon(Weapon) void
+        +EquipArmor(Armor) void
+        +UseItem(Item) void
+        +DisplayStats() void
+        +Attack(Character) int
+    }
+
+    %% Enemy Class
+    class Enemy {
+        -int experienceReward
+        -Item dropItem
+        +Enemy(name, health, attack, expReward)
+        +GetExperienceReward() int
+        +GetDropItem() Item
+    }
+
+    %% Inventory System
+    class Inventory {
+        -List~Item~ items
+        -Weapon equippedWeapon
+        -Armor equippedArmor
+        -int maxCapacity
+        +AddItem(Item) bool
+        +RemoveItem(Item) void
+        +UseItem(Item) void
+        +EquipWeapon(Weapon) void
+        +EquipArmor(Armor) void
+        +DisplayInventory() void
+        +HasItem(string) bool
+    }
+
+    %% Item Base Class
+    class Item {
+        <<abstract>>
+        #string name
+        #string description
+        #int value
+        +Item(name, description, value)
+        +GetName() string
+        +GetDescription() string
+        +Use(Player) void
+    }
+
+    %% Weapon Class
+    class Weapon {
+        -int attackBonus
+        -int criticalChance
+        +Weapon(name, description, value, attackBonus)
+        +GetAttackBonus() int
+        +GetCriticalChance() int
+        +Use(Player) void
+    }
+
+    %% Armor Class
+    class Armor {
+        -int defenseBonus
+        +Armor(name, description, value, defenseBonus)
+        +GetDefenseBonus() int
+        +Use(Player) void
+    }
+
+    %% Potion Class
+    class Potion {
+        -int healAmount
+        +Potion(name, description, value, healAmount)
+        +GetHealAmount() int
+        +Use(Player) void
+    }
+
+    %% Room Class
+    class Room {
+        -string name
+        -string description
+        -List~Enemy~ enemies
+        -List~Item~ items
+        -Dictionary~string_Room~ exits
+        -bool isCleared
+        +Room(name, description)
+        +AddEnemy(Enemy) void
+        +AddItem(Item) void
+        +AddExit(direction, Room) void
+        +GetEnemies() List~Enemy~
+        +GetItems() List~Item~
+        +GetExit(direction) Room
+        +DisplayRoom() void
+        +ClearEnemies() void
+    }
+
+    %% Relationships
+    Game "1" --> "1" Player : has
+    Game "1" --> "*" Room : manages
+    Game "1" --> "1" Room : currentRoom
+    
+    Character <|-- Player : inherits
+    Character <|-- Enemy : inherits
+    
+    Player "1" --> "1" Inventory : has
+    
+    Inventory "1" --> "*" Item : contains
+    Inventory "1" --> "0..1" Weapon : equipped
+    Inventory "1" --> "0..1" Armor : equipped
+    
+    Item <|-- Weapon : inherits
+    Item <|-- Armor : inherits
+    Item <|-- Potion : inherits
+    
+    Room "1" --> "*" Enemy : contains
+    Room "1" --> "*" Item : contains
+    Room "1" --> "*" Room : connected to
+    
+    Enemy "1" --> "0..1" Item : drops
+
+    %% Notes
+    note for Character "Base class for all characters\nProvides core combat functionality\nDesigned for future expansion"
+    note for Item "Base class for all items\nExtensible for future item types\n(scrolls, keys, quest items, etc.)"
+    note for Inventory "Manages all player items\nHandles equipment slots\nEnforces capacity limits"
